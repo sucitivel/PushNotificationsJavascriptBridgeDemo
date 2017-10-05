@@ -8,11 +8,13 @@
 
 import UIKit
 import CoreData
+import NotificationCenter
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    var APNKey: String?
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -88,6 +90,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
         }
     }
-
+    
+    // MARK: - 
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenParts = deviceToken.map { data -> String in
+            return String(format: "%02.2hhx", data)
+        }
+        
+        APNKey = tokenParts.joined()
+        print("Device Token: \(APNKey)")
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register: \(error)")
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        let aps = userInfo["aps"] as! [String: AnyObject]
+        let myViewController = [self.window?.rootViewController as! ViewController]
+        
+        NotificationCenter.default.post(name: Notification.Name(rawValue: messageReceivedNotificationKey), object: nil, userInfo: aps)
+        return
+    }
 }
 
